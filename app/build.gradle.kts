@@ -1,10 +1,38 @@
+import java.util.Properties
 plugins {
   alias(libs.plugins.android.application)
   alias(libs.plugins.compose.compiler)
   alias(libs.plugins.kotlin.serialization)
 }
 
+val localProperties = Properties().apply {
+  rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
+}
+fun signingProperty(name: String, env: String): String? =
+  localProperties.getProperty(name)?.takeIf { it.isNotBlank() } ?: System.getenv(env)
+
+val releaseStoreFile = signingProperty("release.keystore.file", "RELEASE_KEYSTORE_FILE")
+val releaseStorePassword = signingProperty("release.keystore.password", "RELEASE_KEYSTORE_PASSWORD")
+val releaseKeyAlias = signingProperty("release.key.alias", "RELEASE_KEY_ALIAS")
+val releaseKeyPassword = signingProperty("release.key.password", "RELEASE_KEY_PASSWORD")
+val releaseSigningReady = listOf(
+  releaseStoreFile,
+  releaseStorePassword,
+  releaseKeyAlias,
+  releaseKeyPassword
+).all { !it.isNullOrBlank() }
+
 android {
+  signingConfigs {
+    if (releaseSigningReady) {
+      create("release") {
+        storeFile = rootProject.file(releaseStoreFile!!)
+        storePassword = releaseStorePassword!!
+        keyAlias = releaseKeyAlias!!
+        keyPassword = releaseKeyPassword!!
+      }
+    }
+  }
   namespace = "io.github.indusy55.featuremanager"
   compileSdk = 37
   defaultConfig {
@@ -19,6 +47,9 @@ android {
     release {
       isMinifyEnabled = false
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+      if (releaseSigningReady) {
+        signingConfig = signingConfigs.getByName("release")
+      }
     }
   }
   compileOptions {
