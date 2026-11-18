@@ -78,9 +78,10 @@ fun AppsScreen(
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) { appRepo.ensureLoaded() }
-    val scopeMessage = framework.lastScopeMessage
-    LaunchedEffect(scopeMessage) {
-        if (!scopeMessage.isNullOrBlank()) snackbarHostState.showSnackbar(scopeMessage)
+    LaunchedEffect(Unit) {
+        FrameworkService.scopeEvents.collect { message ->
+            snackbarHostState.showSnackbar(message.i18n())
+        }
     }
 
     var query by remember { mutableStateOf("") }

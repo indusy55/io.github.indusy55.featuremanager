@@ -8,6 +8,9 @@ import io.github.libxposed.service.XposedServiceHelper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import java.util.concurrent.atomic.AtomicBoolean
 
 data class HookedProcessSummary(
@@ -55,6 +58,8 @@ object FrameworkService {
 
     private val _status = MutableStateFlow(FrameworkStatus())
     val status: StateFlow<FrameworkStatus> = _status.asStateFlow()
+    private val _scopeEvents = MutableSharedFlow<String>(extraBufferCapacity = 8)
+    val scopeEvents: SharedFlow<String> = _scopeEvents.asSharedFlow()
 
     fun registerOnce() {
         if (!registered.compareAndSet(false, true)) return
@@ -73,6 +78,7 @@ object FrameworkService {
                         isConnected = false,
                         lastScopeMessage = "Xposed 框架服务连接已断开"
                     )
+                    _scopeEvents.tryEmit("Xposed 框架服务连接已断开")
                 }
             })
         }
@@ -139,6 +145,7 @@ object FrameworkService {
         if (service == null) {
             val msg = "Xposed 框架未激活或服务未连接，请在管理器中启用本模块并勾选作用域"
             _status.value = _status.value.copy(lastScopeMessage = msg)
+            _scopeEvents.tryEmit(msg)
             onComplete?.invoke(emptyList(), msg)
             return
         }
@@ -153,6 +160,7 @@ object FrameworkService {
                             "已将 ${approved.size} 个应用加入模块作用域"
                         }
                         refreshStatus(messageOverride = msg)
+                        _scopeEvents.tryEmit(msg)
                         onComplete?.invoke(approved, null)
                     }
                 }
@@ -161,6 +169,7 @@ object FrameworkService {
                     mainHandler.post {
                         val msg = "请求作用域失败: $message"
                         refreshStatus(messageOverride = msg)
+                        _scopeEvents.tryEmit(msg)
                         onComplete?.invoke(emptyList(), message)
                     }
                 }
@@ -168,6 +177,7 @@ object FrameworkService {
         }.onFailure { e ->
             val msg = "请求作用域异常: ${e.message ?: e.javaClass.simpleName}"
             _status.value = _status.value.copy(lastScopeMessage = msg)
+            _scopeEvents.tryEmit(msg)
             onComplete?.invoke(emptyList(), msg)
         }
     }
@@ -182,10 +192,12 @@ object FrameworkService {
         runCatching {
             service.removeScope(clean)
             refreshStatus(messageOverride = "已从模块作用域移除 ${clean.size} 个应用")
+            _scopeEvents.tryEmit("已从模块作用域移除 ${clean.size} 个应用")
             onComplete?.invoke(null)
         }.onFailure { e ->
             val msg = "移除作用域失败: ${e.message}"
             refreshStatus(messageOverride = msg)
+            _scopeEvents.tryEmit(msg)
             onComplete?.invoke(msg)
         }
     }
