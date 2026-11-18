@@ -1,4 +1,10 @@
 package io.github.indusy55.featuremanager
+import android.content.res.Configuration
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.widthIn
@@ -72,102 +78,130 @@ private val TOP_LEVEL_ROUTES = listOf(HomeRoute, AppsRoute, TemplatesRoute, Sett
 fun MainNavigation() {
     val nav = remember { TopLevelBackStack<Any>(HomeTab) }
     val context = LocalContext.current
+    val configuration = LocalConfiguration.current
+    val useRail = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
     fun handleBack() {
         if (!nav.removeLast()) {
             context.findActivity()?.finish()
         }
     }
 
+    fun isSelected(route: TopLevelRoute): Boolean = when (route) {
+        HomeRoute -> nav.topLevelKey == HomeTab
+        AppsRoute -> nav.topLevelKey == AppsTab
+        TemplatesRoute -> nav.topLevelKey == TemplatesTab
+        SettingsRoute -> nav.topLevelKey == SettingsTab
+    }
+
+    fun selectRoute(route: TopLevelRoute) {
+        nav.addTopLevel(
+            when (route) {
+                HomeRoute -> HomeTab
+                AppsRoute -> AppsTab
+                TemplatesRoute -> TemplatesTab
+                SettingsRoute -> SettingsTab
+            }
+        )
+    }
+
     Scaffold(
-        bottomBar = {
-            NavigationBar {
-                TOP_LEVEL_ROUTES.forEach { route ->
-                    val selected = when (route) {
-                        HomeRoute -> nav.topLevelKey == HomeTab
-                        AppsRoute -> nav.topLevelKey == AppsTab
-                        TemplatesRoute -> nav.topLevelKey == TemplatesTab
-                        SettingsRoute -> nav.topLevelKey == SettingsTab
+        bottomBar = if (useRail) {
+            {}
+        } else {
+            {
+                NavigationBar {
+                    TOP_LEVEL_ROUTES.forEach { route ->
+                        NavigationBarItem(
+                            selected = isSelected(route),
+                            onClick = { selectRoute(route) },
+                            icon = { Icon(route.icon, contentDescription = null) },
+                            label = { Text(route.label) }
+                        )
                     }
-                    NavigationBarItem(
-                        selected = selected,
-                        onClick = {
-                            nav.addTopLevel(
-                                when (route) {
-                                    HomeRoute -> HomeTab
-                                    AppsRoute -> AppsTab
-                                    TemplatesRoute -> TemplatesTab
-                                    SettingsRoute -> SettingsTab
-                                }
-                            )
-                        },
-                        icon = { Icon(route.icon, contentDescription = null) },
-                        label = { Text(route.label) }
-                    )
                 }
             }
         }
     ) { innerPadding ->
-        Box(
+        Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
-            contentAlignment = Alignment.TopCenter
+                .padding(innerPadding)
         ) {
+            if (useRail) {
+                NavigationRail(modifier = Modifier.fillMaxHeight()) {
+                    TOP_LEVEL_ROUTES.forEach { route ->
+                        NavigationRailItem(
+                            selected = isSelected(route),
+                            onClick = { selectRoute(route) },
+                            icon = { Icon(route.icon, contentDescription = null) },
+                            label = { Text(route.label) }
+                        )
+                    }
+                }
+            }
             Box(
                 modifier = Modifier
-                    .widthIn(max = 960.dp)
-                    .fillMaxSize()
+                    .weight(1f)
+                    .fillMaxHeight(),
+                contentAlignment = Alignment.TopCenter
             ) {
-                NavDisplay(
-                    backStack = nav.backStack,
-                    onBack = { handleBack() },
-                    transitionSpec = {
-                        fadeIn(animationSpec = tween(160)) togetherWith
-                            fadeOut(animationSpec = tween(160))
-                    },
-                    popTransitionSpec = {
-                        fadeIn(animationSpec = tween(160)) togetherWith
-                            fadeOut(animationSpec = tween(160))
-                    },
-                    predictivePopTransitionSpec = {
-                        fadeIn(animationSpec = tween(160)) togetherWith
-                            fadeOut(animationSpec = tween(160))
-                    },
-                    modifier = Modifier.fillMaxSize(),
-                    entryProvider = entryProvider {
-                        entry<HomeTab> {
-                            HomeScreen(
-                                onOpenAppRules = { pkg -> nav.add(AppRulesScreen(pkg)) },
-                                onOpenApps = { nav.addTopLevel(AppsTab) }
-                            )
+                Box(
+                    modifier = Modifier
+                        .widthIn(max = 960.dp)
+                        .fillMaxSize()
+                ) {
+                    NavDisplay(
+                        backStack = nav.backStack,
+                        onBack = { handleBack() },
+                        transitionSpec = {
+                            fadeIn(animationSpec = tween(160)) togetherWith
+                                fadeOut(animationSpec = tween(160))
+                        },
+                        popTransitionSpec = {
+                            fadeIn(animationSpec = tween(160)) togetherWith
+                                fadeOut(animationSpec = tween(160))
+                        },
+                        predictivePopTransitionSpec = {
+                            fadeIn(animationSpec = tween(160)) togetherWith
+                                fadeOut(animationSpec = tween(160))
+                        },
+                        modifier = Modifier.fillMaxSize(),
+                        entryProvider = entryProvider {
+                            entry<HomeTab> {
+                                HomeScreen(
+                                    onOpenAppRules = { pkg -> nav.add(AppRulesScreen(pkg)) },
+                                    onOpenApps = { nav.addTopLevel(AppsTab) }
+                                )
+                            }
+                            entry<AppsTab> {
+                                AppsScreen(
+                                    onOpenAppRules = { pkg -> nav.add(AppRulesScreen(pkg)) }
+                                )
+                            }
+                            entry<TemplatesTab> {
+                                TemplatesScreen(
+                                    onOpenTemplateEditor = { id -> nav.add(TemplateEditorScreen(id)) }
+                                )
+                            }
+                            entry<SettingsTab> {
+                                SettingsScreen()
+                            }
+                            entry<AppRulesScreen> { key ->
+                                AppRulesScreen(
+                                    packageName = key.packageName,
+                                    onBack = { handleBack() }
+                                )
+                            }
+                            entry<TemplateEditorScreen> { key ->
+                                TemplateEditorScreen(
+                                    templateId = key.templateId,
+                                    onBack = { handleBack() }
+                                )
+                            }
                         }
-                        entry<AppsTab> {
-                            AppsScreen(
-                                onOpenAppRules = { pkg -> nav.add(AppRulesScreen(pkg)) }
-                            )
-                        }
-                        entry<TemplatesTab> {
-                            TemplatesScreen(
-                                onOpenTemplateEditor = { id -> nav.add(TemplateEditorScreen(id)) }
-                            )
-                        }
-                        entry<SettingsTab> {
-                            SettingsScreen()
-                        }
-                        entry<AppRulesScreen> { key ->
-                            AppRulesScreen(
-                                packageName = key.packageName,
-                                onBack = { handleBack() }
-                            )
-                        }
-                        entry<TemplateEditorScreen> { key ->
-                            TemplateEditorScreen(
-                                templateId = key.templateId,
-                                onBack = { handleBack() }
-                            )
-                        }
-                    }
-                )
+                    )
+                }
             }
         }
     }
