@@ -115,7 +115,7 @@ fun MainNavigation() {
         ) {
             Box(
                 modifier = Modifier
-                    .widthIn(max = 720.dp)
+                    .widthIn(max = 960.dp)
                     .fillMaxSize()
             ) {
                 NavDisplay(

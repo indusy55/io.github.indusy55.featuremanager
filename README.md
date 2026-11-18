@@ -32,7 +32,7 @@ git clone git@github.com:indusy55/io.github.indusy55.featuremanager.git
 ## 快速开始
 
 1. 构建并安装 APK（见下方「构建」）。
-2. 在 Xposed 管理器（如 LSPosed）中启用本模块，并将目标应用加入作用域。`module.prop` 中 `staticScope=false`，也可以在应用的「应用」页点击「申请作用域」。`scope.list` 的基线只包含模块自身。
+2. 在 Xposed 管理器（如 LSPosed）中启用本模块，并将目标应用加入作用域。`module.prop` 中 `staticScope=false`，也可以在应用的「应用」页点击「申请作用域」。模块不预置任何作用域。
 3. 打开本模块：
    - 逐项配置：「应用」→ 选择目标应用 → 设置每个 feature 的三态规则；
    - 或批量配置：「模板」→ 选择 PC/TV 等模板 → 「应用到应用」→ 多选目标应用。
@@ -97,7 +97,7 @@ context.contentResolver.call(
 
 - `java_init.list` → `io.github.indusy55.featuremanager.xposed.FeatureManagerModule`
 - `module.prop` → `minApiVersion=102`、`targetApiVersion=102`、`staticScope=false`、`autoHotReload=true`
-- `scope.list` → 模块自身包名（其他目标应用通过作用域管理动态加入）
+- `scope.list` → 空文件（所有目标应用通过作用域管理动态加入）
 
 ## 隐私
 
