@@ -1,4 +1,17 @@
 package io.github.indusy55.featuremanager
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.togetherWith
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 
@@ -58,6 +71,12 @@ private val TOP_LEVEL_ROUTES = listOf(HomeRoute, AppsRoute, TemplatesRoute, Sett
 @Composable
 fun MainNavigation() {
     val nav = remember { TopLevelBackStack<Any>(HomeTab) }
+    val context = LocalContext.current
+    fun handleBack() {
+        if (!nav.removeLast()) {
+            context.findActivity()?.finish()
+        }
+    }
 
     Scaffold(
         bottomBar = {
@@ -88,44 +107,69 @@ fun MainNavigation() {
             }
         }
     ) { innerPadding ->
-        NavDisplay(
-            backStack = nav.backStack,
-            onBack = { nav.removeLast() },
-            modifier = Modifier.padding(innerPadding),
-            entryProvider = entryProvider {
-                entry<HomeTab> {
-                    HomeScreen(
-                        onOpenAppRules = { pkg -> nav.add(AppRulesScreen(pkg)) },
-                        onOpenApps = { nav.addTopLevel(AppsTab) }
-                    )
-                }
-                entry<AppsTab> {
-                    AppsScreen(
-                        onOpenAppRules = { pkg -> nav.add(AppRulesScreen(pkg)) }
-                    )
-                }
-                entry<TemplatesTab> {
-                    TemplatesScreen(
-                        onOpenTemplateEditor = { id -> nav.add(TemplateEditorScreen(id)) }
-                    )
-                }
-                entry<SettingsTab> {
-                    SettingsScreen()
-                }
-                entry<AppRulesScreen> { key ->
-                    AppRulesScreen(
-                        packageName = key.packageName,
-                        onBack = { nav.removeLast() }
-                    )
-                }
-                entry<TemplateEditorScreen> { key ->
-                    TemplateEditorScreen(
-                        templateId = key.templateId,
-                        onBack = { nav.removeLast() }
-                    )
-                }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            Box(
+                modifier = Modifier
+                    .widthIn(max = 720.dp)
+                    .fillMaxSize()
+            ) {
+                NavDisplay(
+                    backStack = nav.backStack,
+                    onBack = { handleBack() },
+                    transitionSpec = {
+                        fadeIn(animationSpec = tween(160)) togetherWith
+                            fadeOut(animationSpec = tween(160))
+                    },
+                    popTransitionSpec = {
+                        fadeIn(animationSpec = tween(160)) togetherWith
+                            fadeOut(animationSpec = tween(160))
+                    },
+                    predictivePopTransitionSpec = {
+                        fadeIn(animationSpec = tween(160)) togetherWith
+                            fadeOut(animationSpec = tween(160))
+                    },
+                    modifier = Modifier.fillMaxSize(),
+                    entryProvider = entryProvider {
+                        entry<HomeTab> {
+                            HomeScreen(
+                                onOpenAppRules = { pkg -> nav.add(AppRulesScreen(pkg)) },
+                                onOpenApps = { nav.addTopLevel(AppsTab) }
+                            )
+                        }
+                        entry<AppsTab> {
+                            AppsScreen(
+                                onOpenAppRules = { pkg -> nav.add(AppRulesScreen(pkg)) }
+                            )
+                        }
+                        entry<TemplatesTab> {
+                            TemplatesScreen(
+                                onOpenTemplateEditor = { id -> nav.add(TemplateEditorScreen(id)) }
+                            )
+                        }
+                        entry<SettingsTab> {
+                            SettingsScreen()
+                        }
+                        entry<AppRulesScreen> { key ->
+                            AppRulesScreen(
+                                packageName = key.packageName,
+                                onBack = { handleBack() }
+                            )
+                        }
+                        entry<TemplateEditorScreen> { key ->
+                            TemplateEditorScreen(
+                                templateId = key.templateId,
+                                onBack = { handleBack() }
+                            )
+                        }
+                    }
+                )
             }
-        )
+        }
     }
 }
 
@@ -164,11 +208,20 @@ class TopLevelBackStack<T : Any>(startKey: T) {
         updateBackStack()
     }
 
-    fun removeLast() {
-        val currentStack = stacks[topLevelKey] ?: return
-        if (currentStack.size <= 1) return
-        currentStack.removeLastOrNull()
-        updateBackStack()
+    fun removeLast(): Boolean {
+        val currentStack = stacks[topLevelKey] ?: return false
+        if (currentStack.size > 1) {
+            currentStack.removeLastOrNull()
+            updateBackStack()
+            return true
+        }
+        if (stacks.size > 1) {
+            stacks.remove(topLevelKey)
+            topLevelKey = stacks.keys.last()
+            updateBackStack()
+            return true
+        }
+        return false
     }
 
     fun replaceCurrent(key: T) {
@@ -178,4 +231,10 @@ class TopLevelBackStack<T : Any>(startKey: T) {
         }
         updateBackStack()
     }
+}
+
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }

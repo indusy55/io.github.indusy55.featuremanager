@@ -33,11 +33,8 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.FileUpload
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -183,36 +180,6 @@ fun TemplatesScreen(
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer
-                )
-            ) {
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Info,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(Modifier.size(8.dp))
-                    Column {
-                        Text("模板是一组可复用的 Feature 规则", style = MaterialTheme.typography.titleSmall)
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = "应用模板采用补丁（patch）方式：仅覆盖模板列出的特性，其余规则保持不变；勾选“替换现有规则”才会清空原有规则。",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                    }
-                }
-            }
-
             Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
