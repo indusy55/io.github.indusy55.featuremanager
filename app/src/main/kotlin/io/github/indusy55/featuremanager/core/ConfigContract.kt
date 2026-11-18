@@ -64,6 +64,7 @@ object FeatureCatalog {
     const val FEATURE_CHROME_ARC = "org.chromium.arc"
     const val FEATURE_CHROME_ARC_DEVICE_MGMT = "org.chromium.arc.device_management"
     const val FEATURE_GOOGLE_AT_HOME = "com.google.android.tv"
+    const val FEATURE_DESKTOP_GMS = "com.google.desktop.gms"
 
     val KNOWN_FEATURES: List<FeatureSpec> = listOf(
         // Form factor / Variant (PC, TV, Watch, Automotive, Embedded)
@@ -84,6 +85,12 @@ object FeatureCatalog {
             label = "ChromeOS ARC 设备管理",
             category = FeatureCategory.FORM_FACTOR,
             description = "ChromeOS 桌面环境辅助标识"
+        ),
+        FeatureSpec(
+            name = FEATURE_DESKTOP_GMS,
+            label = "Google Desktop GMS (ChromeOS PC)",
+            category = FeatureCategory.FORM_FACTOR,
+            description = "Chrome/Play 桌面版 (Desktop) 变体声明的必需特性；普通手机/平板不具备此项"
         ),
         FeatureSpec(
             name = PackageManager.FEATURE_LEANBACK,

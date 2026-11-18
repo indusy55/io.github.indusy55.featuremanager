@@ -190,8 +190,14 @@ fun HomeScreen(
                 modifier = Modifier.weight(1f)
             )
         } else {
+            val cellMinWidth = when (state.settings.homeGridColumns.coerceIn(1, 4)) {
+                1 -> 176.dp
+                2 -> 128.dp
+                3 -> 104.dp
+                else -> 88.dp
+            }
             LazyVerticalGrid(
-                columns = GridCells.Fixed(state.settings.homeGridColumns.coerceIn(1, 4)),
+                columns = GridCells.Adaptive(minSize = cellMinWidth),
                 modifier = Modifier.weight(1f).fillMaxWidth(),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),

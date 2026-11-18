@@ -90,9 +90,14 @@ Debug APK 输出：`app/build/outputs/apk/debug/app-debug.apk`。
 ## 常见 Feature 名称
 
 - PC / ChromeOS：`android.hardware.type.pc`、`org.chromium.arc`、`org.chromium.arc.device_management`、
-  `android.software.freeform_window_management`
+  `android.software.freeform_window_management`、`com.google.desktop.gms`
 - TV / Leanback：`android.software.leanback`、`android.software.leanback_only`、
   `android.hardware.type.television`、`android.hardware.touchscreen`（通常关闭）
 - 手机：`android.hardware.touchscreen`、`android.hardware.telephony`
+
+Google Play 下发 Chrome Canary 的 **Desktop** 变体时，除了 `type.pc` / ARC 标识，还会检查
+`com.google.desktop.gms`（Desktop 版 APK 声明的必需特性）。内置 PC 模板已包含该项。需要注意：Play
+同时依赖服务端设备认证与 Play 服务下发的设备画像，单纯 hook 应用进程里的 Feature 查询不一定能改变
+服务端下发的变体；修改规则后请重启 Play 商店并清除其数据/缓存，且目标应用必须真正进入模块作用域。
 
 也可以在规则编辑器里手动添加任意 feature 名称（例如应用私有 feature 字符串）。

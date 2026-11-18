@@ -417,13 +417,16 @@ fun ConfiguredAppCard(
     val iconSize = if (compact) 48.dp else 64.dp
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(14.dp))
-            .clickable(onClick = onClick)
             .fillMaxWidth()
-            .padding(horizontal = 4.dp, vertical = 10.dp),
+            .padding(horizontal = 2.dp, vertical = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box(contentAlignment = Alignment.TopEnd) {
+        Box(
+            modifier = Modifier
+                .size(iconSize)
+                .clickable(onClick = onClick),
+            contentAlignment = Alignment.TopEnd
+        ) {
             AppIcon(packageName = packageName, size = iconSize)
             if (loadedVersion != null) {
                 Box(

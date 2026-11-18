@@ -124,6 +124,7 @@ object BuiltinTemplates {
             PackageManager.FEATURE_PC to Decision.FORCE_TRUE,
             FeatureCatalog.FEATURE_CHROME_ARC to Decision.FORCE_TRUE,
             FeatureCatalog.FEATURE_CHROME_ARC_DEVICE_MGMT to Decision.FORCE_TRUE,
+            FeatureCatalog.FEATURE_DESKTOP_GMS to Decision.FORCE_TRUE,
             PackageManager.FEATURE_FREEFORM_WINDOW_MANAGEMENT to Decision.FORCE_TRUE,
             PackageManager.FEATURE_ACTIVITIES_ON_SECONDARY_DISPLAYS to Decision.FORCE_TRUE,
             PackageManager.FEATURE_FAKETOUCH to Decision.FORCE_TRUE,
