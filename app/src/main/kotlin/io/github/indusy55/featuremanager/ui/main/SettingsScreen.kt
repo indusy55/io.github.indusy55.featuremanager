@@ -1,6 +1,7 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
 package io.github.indusy55.featuremanager.ui.main
+import androidx.compose.foundation.layout.WindowInsets
 
 import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
@@ -57,7 +58,14 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
 
     Scaffold(
         modifier = modifier,
-        topBar = { TopAppBar(title = { Text("设置") }) }
+        topBar = {
+            TopAppBar(
+                windowInsets = WindowInsets(0.dp),
+                title = {
+                    Text(text = "设置", style = MaterialTheme.typography.titleMedium)
+                }
+            )
+        }
     ) { padding ->
         LazyColumn(
             modifier = Modifier

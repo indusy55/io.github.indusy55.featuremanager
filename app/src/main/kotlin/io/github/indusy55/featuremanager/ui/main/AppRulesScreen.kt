@@ -1,4 +1,5 @@
 package io.github.indusy55.featuremanager.ui.main
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 
 import androidx.compose.foundation.layout.Arrangement
@@ -137,6 +138,7 @@ fun AppRulesScreen(
     Box(modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
             TopAppBar(
+                windowInsets = WindowInsets(0.dp),
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -146,21 +148,12 @@ fun AppRulesScreen(
                     }
                 },
                 title = {
-                    Column {
-                        Text(
-                            text = appLabel,
-                            style = MaterialTheme.typography.titleLarge,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Text(
-                            text = packageName,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
+                    Text(
+                        text = appLabel,
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 },
                 actions = {
                     StatusBadge(

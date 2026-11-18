@@ -1,6 +1,7 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
 package io.github.indusy55.featuremanager.ui.main
+import androidx.compose.foundation.layout.WindowInsets
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -193,7 +194,10 @@ fun TemplateEditorScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text(title) },
+                windowInsets = WindowInsets(0.dp),
+                title = {
+                    Text(text = title, style = MaterialTheme.typography.titleMedium)
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")

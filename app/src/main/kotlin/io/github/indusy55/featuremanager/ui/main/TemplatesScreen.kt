@@ -1,6 +1,13 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
 package io.github.indusy55.featuremanager.ui.main
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import io.github.indusy55.featuremanager.ui.components.AppIcon
 
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -152,7 +159,13 @@ fun TemplatesScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text("模板管理") },
+                windowInsets = WindowInsets(0.dp),
+                title = {
+                    Text(
+                        text = "模板",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                },
                 actions = {
                     IconButton(onClick = { importLauncher.launch("*/*") }) {
                         Icon(Icons.Filled.FileUpload, contentDescription = "导入配置")
@@ -349,6 +362,7 @@ private fun ApplyTemplateDialog(
                 it.packageName.contains(keyword, ignoreCase = true)
         }
     }
+    val allVisibleSelected = visibleApps.isNotEmpty() && visibleApps.all { it.packageName in selected }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -380,34 +394,70 @@ private fun ApplyTemplateDialog(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
-                    else -> LazyColumn(modifier = Modifier.heightIn(max = 300.dp)) {
-                        items(visibleApps, key = { it.packageName }) { app ->
-                            val isSelected = app.packageName in selected
-                            FilterChip(
-                                selected = isSelected,
-                                onClick = {
-                                    selected = if (isSelected) {
-                                        selected - app.packageName
-                                    } else {
-                                        selected + app.packageName
-                                    }
-                                },
-                                leadingIcon = if (isSelected) {
-                                    {
-                                        Icon(
-                                            imageVector = Icons.Filled.Check,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(16.dp)
-                                        )
-                                    }
+                    else -> {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "目标应用 (${visibleApps.size})",
+                                style = MaterialTheme.typography.titleSmall,
+                                modifier = Modifier.weight(1f)
+                            )
+                            TextButton(onClick = {
+                                val visiblePkgs = visibleApps.map { it.packageName }.toSet()
+                                selected = if (allVisibleSelected) {
+                                    selected - visiblePkgs
                                 } else {
-                                    null
-                                },
-                                label = {
-                                    Column {
+                                    selected + visiblePkgs
+                                }
+                            }) {
+                                Text(if (allVisibleSelected) "取消全选" else "全选可见")
+                            }
+                            TextButton(onClick = { selected = emptySet() }) {
+                                Text("清空")
+                            }
+                        }
+                        Spacer(Modifier.height(6.dp))
+                        LazyColumn(
+                            modifier = Modifier.fillMaxWidth().heightIn(max = 340.dp),
+                            contentPadding = PaddingValues(vertical = 2.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            items(visibleApps, key = { it.packageName }) { app ->
+                                val isSelected = app.packageName in selected
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .background(
+                                            if (isSelected) {
+                                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                                            } else {
+                                                MaterialTheme.colorScheme.surfaceContainerLow
+                                            }
+                                        )
+                                        .clickable {
+                                            selected = if (isSelected) {
+                                                selected - app.packageName
+                                            } else {
+                                                selected + app.packageName
+                                            }
+                                        }
+                                        .padding(horizontal = 10.dp, vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Checkbox(
+                                        checked = isSelected,
+                                        onCheckedChange = null
+                                    )
+                                    Spacer(Modifier.width(6.dp))
+                                    AppIcon(packageName = app.packageName, size = 36.dp)
+                                    Spacer(Modifier.width(10.dp))
+                                    Column(modifier = Modifier.weight(1f)) {
                                         Text(
                                             text = app.label,
-                                            style = MaterialTheme.typography.bodySmall,
+                                            style = MaterialTheme.typography.bodyMedium,
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis
                                         )
@@ -419,11 +469,8 @@ private fun ApplyTemplateDialog(
                                             overflow = TextOverflow.Ellipsis
                                         )
                                     }
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 2.dp)
-                            )
+                                }
+                            }
                         }
                     }
                 }

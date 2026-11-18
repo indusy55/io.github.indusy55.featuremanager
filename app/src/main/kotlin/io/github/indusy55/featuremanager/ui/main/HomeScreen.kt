@@ -1,4 +1,5 @@
 package io.github.indusy55.featuremanager.ui.main
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.setValue
 
 import androidx.compose.foundation.layout.Arrangement
@@ -100,19 +101,12 @@ fun HomeScreen(
 
     Column(modifier = modifier.fillMaxSize()) {
         TopAppBar(
+            windowInsets = WindowInsets(0.dp),
             title = {
-                Column {
-                    Text(text = "Feature Manager", style = MaterialTheme.typography.titleLarge)
-                    Text(
-                        text = if (framework.isConnected) {
-                            "框架：${framework.frameworkName} · API ${framework.apiVersion}"
-                        } else {
-                            "框架未连接，规则将在激活后生效"
-                        },
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                Text(
+                    text = "Feature Manager",
+                    style = MaterialTheme.typography.titleMedium
+                )
             },
             actions = {
                 StatusBadge(

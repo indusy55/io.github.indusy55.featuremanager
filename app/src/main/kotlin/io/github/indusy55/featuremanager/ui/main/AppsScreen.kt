@@ -1,4 +1,5 @@
 package io.github.indusy55.featuremanager.ui.main
+import androidx.compose.foundation.layout.WindowInsets
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -126,7 +127,13 @@ fun AppsScreen(
     Box(modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
             TopAppBar(
-                title = { Text("应用列表") },
+                windowInsets = WindowInsets(0.dp),
+                title = {
+                    Text(
+                        text = "应用列表",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                },
                 actions = {
                     StatusBadge(
                         text = if (framework.isConnected) "Xposed 已连接" else "Xposed 未激活",
