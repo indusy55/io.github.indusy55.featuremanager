@@ -1,103 +1,112 @@
 # Feature Manager
 
-一个基于 [libxposed API 102](https://github.com/JingMatrix/libxposed-api) 的 Android Xposed 模块，用于按应用覆写
-`PackageManager.getSystemAvailableFeatures()` / `hasSystemFeature()` 的系统特性（features）。
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![libxposed API 102](https://img.shields.io/badge/libxposed-API%20102-blue.svg)](https://github.com/JingMatrix/libxposed-api)
 
-最常见的用途是**应用变体切换（Variant Patch）**：把应用识别成 PC / TV / 平板 / 手机 / 车机，从而进入相应的
-桌面大屏、Leanback 遥控器或移动端界面。内置模板以 **PC 桌面端** 和 **TV 电视端** 为核心。
+基于 [libxposed API 102](https://github.com/JingMatrix/libxposed-api) 的 Android Xposed 模块：**按应用覆写系统特性（system features）视图**，用于强制启用/屏蔽 `PackageManager` 的 feature，从而切换应用变体（PC / TV / 平板 / 手机 / 车机等）。
 
-## 功能
+```bash
+git clone git@github.com:indusy55/io.github.indusy55.featuremanager.git
+```
 
-| 页面 | 说明 |
+## 它能做什么
+
+- **首页**：网格展示已配置规则的应用，显示规则数量与「已生效」状态；点击图标进入该应用的规则编辑器。
+- **应用**：已安装应用列表，支持搜索与过滤；显示 Xposed 作用域 / 进程状态；可一键申请作用域。
+- **模板**：一个模板就是一个规则集。内置 PC / TV / 平板 / 手机 / 车机变体模板，可新建/复制/编辑自定义模板，**应用模板 = patch**（只覆盖模板声明的特性）。
+- **设置**：外观配置（主题、动态颜色、强调色、纯黑深色、网格密度、紧凑卡片）与框架状态诊断。
+- 支持配置导入/导出，便于备份和分享。
+
+## Feature 规则语义
+
+这里的 feature 指 `context.packageManager.getSystemAvailableFeatures()` / `hasSystemFeature()` 看到的系统特性。
+
+| 规则 | `hasSystemFeature(name)` / `(name, version)` | `getSystemAvailableFeatures()` |
+| --- | --- | --- |
+| 默认 | 调用原方法 | 保留原数组项 |
+| 强制开启 | 直接返回 `true` | 若原数组不存在该项，补入 `FeatureInfo(name, version=0, flags=0)` |
+| 强制关闭 | 直接返回 `false` | 从原数组中移除该项 |
+
+模板应用采用 **patch 语义**：只覆写模板中显式声明的 feature，目标应用原有的其他规则保持不变；勾选「替换现有规则」才会全量替换。
+
+## 快速开始
+
+1. 构建并安装 APK（见下方「构建」）。
+2. 在 Xposed 管理器（如 LSPosed）中启用本模块，并将目标应用加入作用域。`module.prop` 中 `staticScope=false`，也可以在应用的「应用」页点击「申请作用域」。`scope.list` 的基线只包含模块自身。
+3. 打开本模块：
+   - 逐项配置：「应用」→ 选择目标应用 → 设置每个 feature 的三态规则；
+   - 或批量配置：「模板」→ 选择 PC/TV 等模板 → 「应用到应用」→ 多选目标应用。
+4. **强制停止并重新打开目标应用**。目标进程重新加载规则后，模块会把配置生效状态回报给设置页，首页出现「已生效 vN」。
+5. 常见示例：让 Google Play 下发 Chrome Canary 的 **Desktop** 变体，需要应用完整 PC 模板，其中包含 `com.google.desktop.gms`（Desktop APK 的必需 feature），仅 spoof `android.hardware.type.pc` 不够。Play 还会结合服务端设备认证与缓存画像，必要时清除 Play 数据或卸载后重新下载目标应用。
+
+## 内置模板
+
+| 模板 | 主要行为 |
 | --- | --- |
-| 首页 | 网格展示已配置规则的应用；显示规则数量与「已生效」状态；点击卡片进入规则编辑器 |
-| 应用 | 已安装应用列表，支持搜索与过滤；显示 Xposed 作用域/进程状态；可一键申请作用域 |
-| 模板 | 规则集管理。内置 PC / TV / 平板 / 手机 / 车机变体模板；自定义模板 CRUD；**应用模板 = 以 patch 方式合并规则**；支持配置导入导出 |
-| 设置 | 外观（深浅色、动态颜色、强调色、纯黑深色、网格列数、紧凑卡片）；Xposed 框架状态与作用域诊断 |
+| PC 桌面端 (Desktop / ARC) | 开启 `android.hardware.type.pc`、`org.chromium.arc`、`org.chromium.arc.device_management`、`com.google.desktop.gms`、自由窗口与横屏；关闭 TV / 手表 / 车机 / 电话标识 |
+| TV 电视端 (Leanback) | 开启 `android.software.leanback`、`android.hardware.type.television`、横屏与以太网；关闭触摸屏与电话标识 |
+| 平板 / 折叠屏 | 开启多点触控、自由窗口与横竖屏；关闭 PC / TV / 电话标识 |
+| 标准手机 | 开启触摸屏与电话；关闭 PC / TV / 车机标识 |
+| 车载 | 开启 `android.hardware.type.automotive`、横屏与 GPS；关闭 PC / TV 标识 |
 
-### Feature 规则语义（三态）
+也可以在规则编辑器中手动添加任意 feature 名称（包括应用私有的 feature 字符串）。
 
-- **默认**：调用原始 `ApplicationPackageManager` 实现，不修改结果。
-- **开启**：
-  - `hasSystemFeature(name)` 与 `hasSystemFeature(name, version)` 直接返回 `true`；
-  - `getSystemAvailableFeatures()` 中若该特性不存在，则补入 `FeatureInfo(name, version=0, flags=0)`。
-- **关闭**：
-  - 两个 `hasSystemFeature` 重载直接返回 `false`；
-  - 从 `getSystemAvailableFeatures()` 返回的数组中移除该特性。
+## 工作原理
 
-模板应用采用 **patch** 语义：只覆写模板中显式声明的特性，应用原有的其他特性规则保持不变（可勾选「替换现有规则」改为全量替换）。
-
-## Xposed 模块配置
-
-模块元数据位于 `app/src/main/resources/META-INF/xposed/`：
-
-- `java_init.list` → `io.github.indusy55.featuremanager.xposed.FeatureManagerModule`
-- `module.prop` → `minApiVersion=102`、`targetApiVersion=102`、`staticScope=false`、`autoHotReload=true`
-
-Hook 点为 `android.app.ApplicationPackageManager` 的：
+Hook 点位于目标进程的 `android.app.ApplicationPackageManager`：
 
 - `hasSystemFeature(String)`
 - `hasSystemFeature(String, int)`
 - `getSystemAvailableFeatures()`
 
-模块只会在被加载进目标应用进程后安装 hook；找不到方法或拿不到 Context 时降级为原方法，不会导致目标应用崩溃。
-
-## 配置读取与「已生效」状态
-
-规则**不是**通过 `getRemotePreferences` 读取的。模块在目标进程内通过：
+配置**不通过** `getRemotePreferences` 读取。模块通过：
 
 ```kotlin
-contentResolver.call(
-    "io.github.indusy55.featuremanager.config",
+context.contentResolver.call(
+    "io.github.indusy55.featuremanager.config", // authority
     "resolve",
     targetPackageName,
     null
 )
 ```
 
-向设置页的 `ConfigProvider` 请求两个字符串数组：
+向设置页的 `ConfigProvider` 请求 `add` / `remove` 两个字符串数组（另带 `version` 与 `configured`）。拿到配置后，模块发出 `io.github.indusy55.featuremanager.CONFIG_LOADED` 显式广播，设置页据此显示「已生效」。模块侧有短 TTL 缓存，避免每次 feature 查询都跨进程调用。
 
-- `add`：强制开启的 feature 名称
-- `remove`：强制关闭的 feature 名称
-- 附加 `version`（配置修订号）与 `configured` 标志，便于缓存与诊断
+作用域状态通过 `io.github.libxposed:service:102.0.0` 获取：`getScope()` 判断是否在作用域，`getRunningTargets()` 判断目标进程是否已被 hook，并支持 `requestScope()` / `removeScope()`。
 
-拿到配置后，模块会发出 `io.github.indusy55.featuremanager.CONFIG_LOADED` 显式广播（携带包名、进程名、
-版本号、时间戳与增删数量），设置页的 `LoadedReceiver` 接收后显示「已生效」。配置变更时设置页发出
-`CONFIG_CHANGED` 广播；模块侧还有 1.5 秒短 TTL 缓存，避免每次 `hasSystemFeature()` 都跨进程调用。
+关键源码：
 
-## 作用域（Scope）状态
-
-应用通过 `io.github.libxposed:service:102.0.0` 连接 Xposed 框架服务：
-
-- `XposedService.getScope()` 判断应用是否在模块作用域；
-- `XposedService.getRunningTargets()`（服务 API ≥ 102）判断目标进程是否已被 hook；
-- 支持 `requestScope()` / `removeScope()`；框架不可用或请求失败时显示中文诊断信息。
-
-`scope.list` 的基线只包含模块自身包名；由于 `staticScope=false`，可在应用内通过 Xposed 服务
-`requestScope()` 动态为其他应用加入作用域，或在 Xposed 管理器中勾选。部分框架要求重启目标应用
-（或设备）后才能注入模块。
+- `xposed/FeatureManagerModule.kt` — Xposed 入口与 hook
+- `xposed/ConfigClient.kt` — 跨进程配置读取、缓存与 LOADED 广播
+- `service/ConfigProvider.kt`、`service/LoadedReceiver.kt` — 配置提供者与状态接收
+- `data/` — 规则、模板、应用列表与持久化
+- `ui/` — Compose 页面与组件
 
 ## 构建
 
-需要 JDK 17+、Android SDK Platform 37 与 Android Gradle Plugin 9.2.1 / Gradle 9.4.1（Wrapper 自动下载）。
+需要 JDK 17+、Android SDK Platform 37。Gradle Wrapper 会自动下载 Gradle 9.4.1，AGP 版本为 9.2.1。
 
 ```bash
 ./gradlew :app:assembleDebug
+# Debug APK: app/build/outputs/apk/debug/app-debug.apk
+
+./gradlew :app:testDebugUnitTest
 ```
 
-Debug APK 输出：`app/build/outputs/apk/debug/app-debug.apk`。
+模块元数据位于 `app/src/main/resources/META-INF/xposed/`：
 
-## 常见 Feature 名称
+- `java_init.list` → `io.github.indusy55.featuremanager.xposed.FeatureManagerModule`
+- `module.prop` → `minApiVersion=102`、`targetApiVersion=102`、`staticScope=false`、`autoHotReload=true`
+- `scope.list` → 模块自身包名（其他目标应用通过作用域管理动态加入）
 
-- PC / ChromeOS：`android.hardware.type.pc`、`org.chromium.arc`、`org.chromium.arc.device_management`、
-  `android.software.freeform_window_management`、`com.google.desktop.gms`
-- TV / Leanback：`android.software.leanback`、`android.software.leanback_only`、
-  `android.hardware.type.television`、`android.hardware.touchscreen`（通常关闭）
-- 手机：`android.hardware.touchscreen`、`android.hardware.telephony`
+## 隐私
 
-Google Play 下发 Chrome Canary 的 **Desktop** 变体时，除了 `type.pc` / ARC 标识，还会检查
-`com.google.desktop.gms`（Desktop 版 APK 声明的必需特性）。内置 PC 模板已包含该项。需要注意：Play
-同时依赖服务端设备认证与 Play 服务下发的设备画像，单纯 hook 应用进程里的 Feature 查询不一定能改变
-服务端下发的变体；修改规则后请重启 Play 商店并清除其数据/缓存，且目标应用必须真正进入模块作用域。
+模块不请求网络权限，不在应用内上传任何配置。规则、模板与外观设置保存在应用私有 `SharedPreferences` 中。导出的配置为本地 JSON，导入/导出由用户主动触发。
 
-也可以在规则编辑器里手动添加任意 feature 名称（例如应用私有 feature 字符串）。
+## 免责声明
+
+本项目依赖 Xposed 框架（通常需要 root 或相应定制环境）。修改应用对系统特性的感知可能导致应用异常、账号风险或违反第三方服务条款。请在自己的设备与测试环境中自行评估风险，作者不承担任何责任。
+
+## 开源协议
+
+[MIT](LICENSE) © 2026 indusy55
