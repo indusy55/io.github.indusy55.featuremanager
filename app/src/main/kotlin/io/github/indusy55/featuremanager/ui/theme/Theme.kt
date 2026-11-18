@@ -72,33 +72,19 @@ fun FeatureManagerTheme(
     val context = LocalContext.current
     val palette = ACCENTS[settings.accentStyle] ?: ACCENTS.getValue(AccentStyle.INDIGO)
 
-    val colorScheme = when {
+    val baseScheme = when {
         settings.dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
 
-        darkTheme -> {
-            darkColorScheme(
-                primary = palette.darkPrimary,
-                onPrimary = Color(0xFF101622),
-                primaryContainer = palette.darkContainer,
-                onPrimaryContainer = Color(0xFFE3EAFF),
-                secondary = palette.darkPrimary,
-                secondaryContainer = palette.darkContainer
-            ).let { scheme ->
-                if (settings.pureBlackDark) {
-                    scheme.copy(
-                        background = Color.Black,
-                        surface = Color(0xFF08090B),
-                        surfaceVariant = Color(0xFF16181D),
-                        surfaceContainerLowest = Color.Black,
-                        surfaceContainer = Color(0xFF0F1115)
-                    )
-                } else {
-                    scheme
-                }
-            }
-        }
+        darkTheme -> darkColorScheme(
+            primary = palette.darkPrimary,
+            onPrimary = Color(0xFF101622),
+            primaryContainer = palette.darkContainer,
+            onPrimaryContainer = Color(0xFFE3EAFF),
+            secondary = palette.darkPrimary,
+            secondaryContainer = palette.darkContainer
+        )
 
         else -> lightColorScheme(
             primary = palette.lightPrimary,
@@ -108,6 +94,23 @@ fun FeatureManagerTheme(
             secondary = palette.lightPrimary,
             secondaryContainer = palette.lightContainer
         )
+    }
+
+    val colorScheme = if (darkTheme && settings.pureBlackDark) {
+        baseScheme.copy(
+            background = Color.Black,
+            surface = Color(0xFF08090B),
+            surfaceVariant = Color(0xFF16181D),
+            surfaceDim = Color.Black,
+            surfaceBright = Color(0xFF1A1C20),
+            surfaceContainerLowest = Color.Black,
+            surfaceContainerLow = Color(0xFF0A0B0D),
+            surfaceContainer = Color(0xFF0F1115),
+            surfaceContainerHigh = Color(0xFF14161A),
+            surfaceContainerHighest = Color(0xFF1A1C20)
+        )
+    } else {
+        baseScheme
     }
 
     MaterialTheme(
