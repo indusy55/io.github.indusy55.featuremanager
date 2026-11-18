@@ -49,10 +49,8 @@ import io.github.indusy55.featuremanager.data.FeatureRepository
 import io.github.indusy55.featuremanager.service.FrameworkService
 import io.github.indusy55.featuremanager.ui.components.AppIcon
 import io.github.indusy55.featuremanager.ui.components.AppScopeStatusChip
-import io.github.indusy55.featuremanager.ui.components.BadgeTone
 import io.github.indusy55.featuremanager.ui.components.EmptyState
 import io.github.indusy55.featuremanager.ui.components.SearchField
-import io.github.indusy55.featuremanager.ui.components.StatusBadge
 import kotlinx.coroutines.launch
 
 private enum class AppFilter(val label: String) {
@@ -131,14 +129,10 @@ fun AppsScreen(
                 title = {
                     Text(
                         text = "应用列表",
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleLarge
                     )
                 },
                 actions = {
-                    StatusBadge(
-                        text = if (framework.isConnected) "Xposed 已连接" else "Xposed 未激活",
-                        tone = if (framework.isConnected) BadgeTone.SUCCESS else BadgeTone.WARNING
-                    )
                     IconButton(onClick = {
                         scope.launch { appRepo.refreshInstalledApps() }
                     }) {

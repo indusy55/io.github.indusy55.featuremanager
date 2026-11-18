@@ -143,15 +143,10 @@ fun MainNavigation() {
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxHeight(),
-                contentAlignment = Alignment.TopCenter
+                    .fillMaxHeight()
+                    .then(if (!useRail) Modifier.padding(horizontal = 8.dp) else Modifier)
             ) {
-                Box(
-                    modifier = Modifier
-                        .widthIn(max = 960.dp)
-                        .fillMaxSize()
-                ) {
-                    NavDisplay(
+                NavDisplay(
                         backStack = nav.backStack,
                         onBack = { handleBack() },
                         transitionSpec = {
@@ -201,7 +196,6 @@ fun MainNavigation() {
                             }
                         }
                     )
-                }
             }
         }
     }

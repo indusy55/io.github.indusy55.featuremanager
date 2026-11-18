@@ -196,7 +196,7 @@ fun TemplateEditorScreen(
             TopAppBar(
                 windowInsets = WindowInsets(0.dp),
                 title = {
-                    Text(text = title, style = MaterialTheme.typography.titleMedium)
+                    Text(text = title, style = MaterialTheme.typography.titleLarge)
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {

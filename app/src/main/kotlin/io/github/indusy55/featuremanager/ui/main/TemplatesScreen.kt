@@ -160,7 +160,7 @@ fun TemplatesScreen(
                 title = {
                     Text(
                         text = "模板",
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleLarge
                     )
                 },
                 actions = {

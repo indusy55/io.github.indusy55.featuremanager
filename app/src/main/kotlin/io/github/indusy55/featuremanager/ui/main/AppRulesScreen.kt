@@ -54,13 +54,11 @@ import io.github.indusy55.featuremanager.data.FeatureRepository
 import io.github.indusy55.featuremanager.service.FrameworkService
 import io.github.indusy55.featuremanager.ui.components.AppIcon
 import io.github.indusy55.featuremanager.ui.components.AppScopeStatusChip
-import io.github.indusy55.featuremanager.ui.components.BadgeTone
 import io.github.indusy55.featuremanager.ui.components.EmptyState
 import io.github.indusy55.featuremanager.ui.components.FeatureRuleRow
 import io.github.indusy55.featuremanager.ui.components.RuleCountSummary
 import io.github.indusy55.featuremanager.ui.components.SearchField
 import io.github.indusy55.featuremanager.ui.components.SectionHeader
-import io.github.indusy55.featuremanager.ui.components.StatusBadge
 import io.github.indusy55.featuremanager.ui.components.formatLoadedTime
 import kotlinx.coroutines.launch
 
@@ -150,17 +148,11 @@ fun AppRulesScreen(
                 title = {
                     Text(
                         text = appLabel,
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 },
-                actions = {
-                    StatusBadge(
-                        text = if (framework.isConnected) "Xposed 已连接" else "Xposed 未激活",
-                        tone = if (framework.isConnected) BadgeTone.SUCCESS else BadgeTone.WARNING
-                    )
-                }
             )
 
             LazyColumn(

@@ -62,7 +62,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
             TopAppBar(
                 windowInsets = WindowInsets(0.dp),
                 title = {
-                    Text(text = "设置", style = MaterialTheme.typography.titleMedium)
+                    Text(text = "设置", style = MaterialTheme.typography.titleLarge)
                 }
             )
         }

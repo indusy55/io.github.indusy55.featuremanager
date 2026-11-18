@@ -37,11 +37,9 @@ import io.github.indusy55.featuremanager.data.AppListRepository
 import io.github.indusy55.featuremanager.data.FeatureRepository
 import io.github.indusy55.featuremanager.data.LoadedProcessState
 import io.github.indusy55.featuremanager.service.FrameworkService
-import io.github.indusy55.featuremanager.ui.components.BadgeTone
 import io.github.indusy55.featuremanager.ui.components.ConfiguredAppCard
 import io.github.indusy55.featuremanager.ui.components.EmptyState
 import io.github.indusy55.featuremanager.ui.components.SearchField
-import io.github.indusy55.featuremanager.ui.components.StatusBadge
 
 private const val LOADED_FRESH_MS = 15 * 60 * 1000L
 
@@ -105,15 +103,9 @@ fun HomeScreen(
             title = {
                 Text(
                     text = "Feature Manager",
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleLarge
                 )
             },
-            actions = {
-                StatusBadge(
-                    text = if (framework.isConnected) "Xposed 已连接" else "Xposed 未激活",
-                    tone = if (framework.isConnected) BadgeTone.SUCCESS else BadgeTone.WARNING
-                )
-            }
         )
 
         if (showFrameworkBanner || showEmptyBanner) {
