@@ -1,5 +1,6 @@
 package io.github.indusy55.featuremanager.xposed
 import android.content.Intent
+import android.content.Context
 import android.os.Bundle
 
 import android.content.pm.FeatureInfo
@@ -212,11 +213,15 @@ class FeatureManagerModule : XposedModule() {
                 .intercept { chain ->
                     val intent = chain.getArg(0) as? Intent
                     if (intent?.action == CAR_ACQUIRE_ACTION) {
-                        logDebug("Blocked $CAR_ACQUIRE_ACTION from Play (unsupported on this ROM)")
-                        null
-                    } else {
-                        chain.proceed()
+                        val context = chain.thisObject as? Context
+                        val canHandle = context?.packageManager?.resolveActivity(intent, 0) != null
+                        if (!canHandle) {
+                            logDebug("Blocked $CAR_ACQUIRE_ACTION: no Activity can handle it")
+                            return@intercept null
+                        }
+                        logDebug("Allowing $CAR_ACQUIRE_ACTION: handler exists")
                     }
+                    chain.proceed()
                 }
         }
     }
