@@ -1,4 +1,6 @@
 package io.github.indusy55.featuremanager.xposed
+import android.content.Intent
+import android.os.Bundle
 
 import android.content.pm.FeatureInfo
 import android.util.Log
@@ -91,6 +93,9 @@ class FeatureManagerModule : XposedModule() {
             hasFeature1?.let { hookHasFeature(it, packageName) }
             hasFeature2?.let { hookHasFeature(it, packageName) }
             getFeatures?.let { hookGetSystemAvailableFeatures(it, packageName) }
+            if (packageName == PLAY_PACKAGE) {
+                installPlayCarSafetyHooks(loader)
+            }
 
             hooksInstalled = true
             logDebug(
@@ -178,6 +183,44 @@ class FeatureManagerModule : XposedModule() {
         return runCatching { clazz.getDeclaredMethod(name, *parameterTypes) }.getOrNull()
             ?: runCatching { clazz.getMethod(name, *parameterTypes) }.getOrNull()
     }
+    private fun installPlayCarSafetyHooks(loader: ClassLoader?) {
+        val activityClass = runCatching {
+            Class.forName("android.app.Activity", false, loader ?: javaClass.classLoader)
+        }.getOrElse { error ->
+            logWarn("Failed to locate Activity for Play car safety hook: ${error.message}")
+            return
+        }
+        val candidates = listOf(
+            findMethod(activityClass, "startActivity", Intent::class.java),
+            findMethod(
+                activityClass,
+                "startActivityForResult",
+                Intent::class.java,
+                Integer.TYPE
+            ),
+            findMethod(
+                activityClass,
+                "startActivityForResult",
+                Intent::class.java,
+                Integer.TYPE,
+                Bundle::class.java
+            )
+        )
+        candidates.filterNotNull().forEach { method ->
+            hook(method)
+                .setExceptionMode(XposedInterface.ExceptionMode.PROTECTIVE)
+                .intercept { chain ->
+                    val intent = chain.getArg(0) as? Intent
+                    if (intent?.action == CAR_ACQUIRE_ACTION) {
+                        logDebug("Blocked $CAR_ACQUIRE_ACTION from Play (unsupported on this ROM)")
+                        null
+                    } else {
+                        chain.proceed()
+                    }
+                }
+        }
+    }
+
 
     private fun logDebug(message: String) {
         runCatching { log(Log.DEBUG, TAG, message) }
@@ -190,5 +233,7 @@ class FeatureManagerModule : XposedModule() {
     private companion object {
         const val TAG = "FeatureManager.Xposed"
         const val APM_CLASS_NAME = "android.app.ApplicationPackageManager"
+        const val PLAY_PACKAGE = "com.android.vending"
+        const val CAR_ACQUIRE_ACTION = "com.google.android.finsky.car.ACQUIRE"
     }
 }
