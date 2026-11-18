@@ -86,7 +86,7 @@ data class AppearanceSettings(
     val dynamicColor: Boolean = true,
     val pureBlackDark: Boolean = false,
     val accentStyle: AccentStyle = AccentStyle.INDIGO,
-    val homeGridColumns: Int = 2,
+    val homeGridColumns: Int = 4,
     val compactCards: Boolean = false,
     val showSystemAppsByDefault: Boolean = false,
     val autoRequestScopeOnSave: Boolean = true

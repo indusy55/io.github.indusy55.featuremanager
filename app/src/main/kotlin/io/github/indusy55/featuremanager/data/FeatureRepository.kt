@@ -438,7 +438,7 @@ class FeatureRepository private constructor(private val appContext: Context) {
                 accentStyle = runCatching {
                     AccentStyle.valueOf(settingsObj.optString("accentStyle", AccentStyle.INDIGO.name))
                 }.getOrDefault(AccentStyle.INDIGO),
-                homeGridColumns = settingsObj.optInt("homeGridColumns", 2).coerceIn(1, 4),
+                homeGridColumns = settingsObj.optInt("homeGridColumns", 4).coerceIn(1, 4),
                 compactCards = settingsObj.optBoolean("compactCards", false),
                 showSystemAppsByDefault = settingsObj.optBoolean("showSystemAppsByDefault", false),
                 autoRequestScopeOnSave = settingsObj.optBoolean("autoRequestScopeOnSave", true)

@@ -1,4 +1,7 @@
 package io.github.indusy55.featuremanager.ui.components
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.getValue
 
 import androidx.compose.foundation.Image
@@ -411,80 +414,49 @@ fun ConfiguredAppCard(
     loadedVersion: Int? = null,
     compact: Boolean = false
 ) {
-    Card(
-        modifier = modifier,
-        onClick = onClick,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        )
+    val iconSize = if (compact) 48.dp else 64.dp
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(14.dp))
+            .clickable(onClick = onClick)
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp, vertical = 10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
-            modifier = Modifier.padding(if (compact) 10.dp else 14.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            AppIcon(packageName = packageName, size = if (compact) 36.dp else 48.dp)
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = packageName,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Spacer(Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                if (config.enabledCount > 0) {
-                    StatusBadge(text = "+${config.enabledCount}", tone = BadgeTone.SUCCESS, compact = true)
-                }
-                if (config.disabledCount > 0) {
-                    StatusBadge(text = "-${config.disabledCount}", tone = BadgeTone.ERROR, compact = true)
-                }
-            }
+        Box(contentAlignment = Alignment.TopEnd) {
+            AppIcon(packageName = packageName, size = iconSize)
             if (loadedVersion != null) {
-                Spacer(Modifier.height(4.dp))
-                StatusBadge(text = "已生效 v$loadedVersion", tone = BadgeTone.SUCCESS, compact = true)
+                Box(
+                    modifier = Modifier
+                        .size(12.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary)
+                        .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape)
+                )
             }
         }
-    }
-}
-
-@Composable
-private fun StatusBadge(
-    text: String,
-    tone: BadgeTone,
-    compact: Boolean
-) {
-    if (compact) {
-        Box(
-            modifier = Modifier
-                .background(
-                    when (tone) {
-                        BadgeTone.SUCCESS -> MaterialTheme.colorScheme.primaryContainer
-                        BadgeTone.ERROR -> MaterialTheme.colorScheme.errorContainer
-                        else -> MaterialTheme.colorScheme.surfaceContainerHigh
-                    },
-                    RoundedCornerShape(6.dp)
-                )
-                .padding(horizontal = 6.dp, vertical = 2.dp)
-        ) {
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodySmall,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+        )
+        Text(
+            text = "+${config.enabledCount}  ·  -${config.disabledCount}",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1
+        )
+        if (loadedVersion != null) {
             Text(
-                text = text,
+                text = "已生效 v$loadedVersion",
                 style = MaterialTheme.typography.labelSmall,
-                color = when (tone) {
-                    BadgeTone.SUCCESS -> MaterialTheme.colorScheme.onPrimaryContainer
-                    BadgeTone.ERROR -> MaterialTheme.colorScheme.onErrorContainer
-                    else -> MaterialTheme.colorScheme.onSurfaceVariant
-                }
+                color = MaterialTheme.colorScheme.primary,
+                maxLines = 1
             )
         }
-    } else {
-        StatusBadge(text = text, tone = tone)
     }
 }
 
