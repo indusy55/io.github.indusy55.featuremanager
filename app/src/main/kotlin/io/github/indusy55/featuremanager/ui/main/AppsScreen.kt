@@ -56,7 +56,7 @@ import kotlinx.coroutines.launch
 private enum class AppFilter(val label: String) {
     ALL("全部"),
     SYSTEM("系统应用"),
-    THIRD_PARTY("第三方"),
+    THIRD_PARTY("用户应用"),
     CONFIGURED("已配置")
 }
 
@@ -109,7 +109,7 @@ fun AppsScreen(
 
     fun requestScope(packageName: String) {
         if (!framework.isConnected) {
-            scope.launch { snackbarHostState.showSnackbar("Xposed 框架未连接，无法申请作用域") }
+            scope.launch { snackbarHostState.showSnackbar("Xposed 框架未连接，无法申请作用域".i18n()) }
             return
         }
         FrameworkService.requestScope(listOf(packageName)) { approved, error ->
@@ -118,7 +118,7 @@ fun AppsScreen(
             } else {
                 "作用域请求未获批准"
             }
-            scope.launch { snackbarHostState.showSnackbar(message) }
+            scope.launch { snackbarHostState.showSnackbar(message.i18n()) }
         }
     }
 

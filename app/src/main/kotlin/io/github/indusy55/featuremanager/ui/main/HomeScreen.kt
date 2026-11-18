@@ -1,4 +1,10 @@
 package io.github.indusy55.featuremanager.ui.main
+import android.app.ActivityManager
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
+import android.widget.Toast
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.setValue
 
@@ -76,6 +82,37 @@ fun HomeScreen(
         installedApps.associate { it.packageName to it.label }
     }
     fun labelOf(pkg: String): String = labels[pkg]?.takeIf { it.isNotBlank() } ?: pkg
+
+    fun openAppDetails(pkg: String) {
+        runCatching {
+            val intent = Intent(
+                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                Uri.parse("package:$pkg")
+            )
+            context.startActivity(intent)
+        }.onFailure {
+            Toast.makeText(context, "打开应用信息失败".i18n(), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    fun forceStop(pkg: String) {
+        var stopped = runCatching {
+            val am = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+            am.javaClass.getMethod("forceStopPackage", String::class.java).invoke(am, pkg)
+            true
+        }.getOrDefault(false)
+        if (!stopped) {
+            stopped = runCatching {
+                val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "am force-stop $pkg"))
+                process.waitFor() == 0
+            }.getOrDefault(false)
+        }
+        Toast.makeText(
+            context,
+            if (stopped) "已强行停止".i18n() else "强行停止失败，请在系统设置中操作".i18n(),
+            Toast.LENGTH_SHORT
+        ).show()
+    }
 
     val configuredApps = remember(state.appConfigs, state.loadedStates, labels, query, filter) {
         val keyword = query.trim()
@@ -203,10 +240,14 @@ fun HomeScreen(
                         config = config,
                         onClick = { onOpenAppRules(config.packageName) },
                         loadedVersion = if (isFreshLoaded(loaded)) loaded?.configVersion else null,
-                        compact = state.settings.compactCards
+                        compact = state.settings.compactCards,
+                        onAppInfo = { openAppDetails(config.packageName) },
+                        onForceStop = { forceStop(config.packageName) },
+                        onRemoveRules = { repo.clearAppRules(config.packageName) }
                     )
                 }
             }
         }
     }
+
 }

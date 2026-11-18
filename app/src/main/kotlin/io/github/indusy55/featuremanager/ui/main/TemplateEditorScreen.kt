@@ -109,7 +109,7 @@ fun TemplateEditorScreen(
     LaunchedEffect(Unit) { appRepo.ensureLoaded() }
 
     fun notify(message: String) {
-        scope.launch { snackbarHostState.showSnackbar(message) }
+        scope.launch { snackbarHostState.showSnackbar(message.i18n()) }
     }
 
     val editableCustom = if (editingId == null) {

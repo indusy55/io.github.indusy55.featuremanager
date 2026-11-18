@@ -1,4 +1,13 @@
 package io.github.indusy55.featuremanager.ui.components
+import androidx.compose.runtime.setValue
+import io.github.indusy55.featuremanager.i18n.i18n
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.unit.DpOffset
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.CircleShape
@@ -34,7 +43,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
+import io.github.indusy55.featuremanager.i18n.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
@@ -404,6 +413,7 @@ fun TemplateCard(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ConfiguredAppCard(
     packageName: String,
@@ -412,9 +422,13 @@ fun ConfiguredAppCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     loadedVersion: Int? = null,
-    compact: Boolean = false
+    compact: Boolean = false,
+    onAppInfo: (() -> Unit)? = null,
+    onForceStop: (() -> Unit)? = null,
+    onRemoveRules: (() -> Unit)? = null,
 ) {
     val iconSize = if (compact) 48.dp else 64.dp
+    var menuExpanded by remember { mutableStateOf(false) }
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -424,7 +438,10 @@ fun ConfiguredAppCard(
         Box(
             modifier = Modifier
                 .size(iconSize)
-                .clickable(onClick = onClick),
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = { menuExpanded = true }
+                ),
             contentAlignment = Alignment.TopEnd
         ) {
             AppIcon(packageName = packageName, size = iconSize)
@@ -436,6 +453,32 @@ fun ConfiguredAppCard(
                         .background(MaterialTheme.colorScheme.primary)
                         .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape)
                 )
+            }
+            if (onAppInfo != null || onForceStop != null || onRemoveRules != null) {
+                DropdownMenu(
+                    expanded = menuExpanded,
+                    onDismissRequest = { menuExpanded = false },
+                    offset = DpOffset(x = 0.dp, y = iconSize)
+                ) {
+                    onAppInfo?.let { action ->
+                        DropdownMenuItem(
+                            text = { Text("应用信息".i18n()) },
+                            onClick = { action(); menuExpanded = false }
+                        )
+                    }
+                    onForceStop?.let { action ->
+                        DropdownMenuItem(
+                            text = { Text("强行停止".i18n()) },
+                            onClick = { action(); menuExpanded = false }
+                        )
+                    }
+                    onRemoveRules?.let { action ->
+                        DropdownMenuItem(
+                            text = { Text("取消规则".i18n()) },
+                            onClick = { action(); menuExpanded = false }
+                        )
+                    }
+                }
             }
         }
         Spacer(Modifier.height(8.dp))

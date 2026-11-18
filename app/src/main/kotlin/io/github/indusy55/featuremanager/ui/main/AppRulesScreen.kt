@@ -95,7 +95,7 @@ fun AppRulesScreen(
     val scope = rememberCoroutineScope()
 
     fun notify(message: String) {
-        scope.launch { snackbarHostState.showSnackbar(message) }
+        scope.launch { snackbarHostState.showSnackbar(message.i18n()) }
     }
 
     // buildCatalogWithDeviceState() already merges FeatureCatalog.KNOWN_FEATURES with
