@@ -197,7 +197,7 @@ fun AppRulesScreen(
                                     packageName = packageName,
                                     frameworkStatus = framework,
                                     loadedState = loadedState,
-                                    compact = state.settings.compactCards
+                                    configRevision = state.revision,
                                 )
                             }
                             if (config.appliedTemplates.isNotEmpty()) {

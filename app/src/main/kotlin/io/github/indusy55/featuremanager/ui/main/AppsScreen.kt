@@ -233,7 +233,7 @@ fun AppsScreen(
                                         packageName = app.packageName,
                                         frameworkStatus = framework,
                                         loadedState = state.loadedStates[app.packageName],
-                                        compact = state.settings.compactCards
+                                        configRevision = state.revision,
                                     )
                                     Spacer(Modifier.height(4.dp))
                                     if (!inScope) {

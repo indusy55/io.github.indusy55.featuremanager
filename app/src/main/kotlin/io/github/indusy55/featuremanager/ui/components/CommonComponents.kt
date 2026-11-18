@@ -262,12 +262,16 @@ fun AppScopeStatusChip(
     frameworkStatus: FrameworkStatus,
     loadedState: LoadedProcessState?,
     modifier: Modifier = Modifier,
+    configRevision: Int? = null,
     compact: Boolean = false
 ) {
     val now = System.currentTimeMillis()
-    val isFreshLoaded = loadedState != null && now - loadedState.timestamp < 15 * 60 * 1000L
+    val versionMatches = configRevision == null || loadedState?.configVersion == configRevision
+    val isOutdated = loadedState != null && !versionMatches
+    val isFreshLoaded = loadedState != null && versionMatches &&
+        now - loadedState.timestamp < 15 * 60 * 1000L
     val (text, tone) = when {
-        isFreshLoaded -> "已生效 (v${loadedState!!.configVersion})" to BadgeTone.SUCCESS
+        isOutdated -> "待生效" to BadgeTone.WARNING
         frameworkStatus.isProcessHooked(packageName) -> "进程运行中" to BadgeTone.INFO
         frameworkStatus.isPackageInScope(packageName) -> "已在作用域" to BadgeTone.WARNING
         else -> "未加入作用域" to BadgeTone.ERROR
@@ -424,7 +428,6 @@ fun ConfiguredAppCard(
     loadedVersion: Int? = null,
     compact: Boolean = false,
     onAppInfo: (() -> Unit)? = null,
-    onForceStop: (() -> Unit)? = null,
     onRemoveRules: (() -> Unit)? = null,
 ) {
     val iconSize = if (compact) 48.dp else 64.dp
@@ -454,7 +457,7 @@ fun ConfiguredAppCard(
                         .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape)
                 )
             }
-            if (onAppInfo != null || onForceStop != null || onRemoveRules != null) {
+            if (onAppInfo != null || onRemoveRules != null) {
                 DropdownMenu(
                     expanded = menuExpanded,
                     onDismissRequest = { menuExpanded = false },
@@ -463,12 +466,6 @@ fun ConfiguredAppCard(
                     onAppInfo?.let { action ->
                         DropdownMenuItem(
                             text = { Text("应用信息".i18n()) },
-                            onClick = { action(); menuExpanded = false }
-                        )
-                    }
-                    onForceStop?.let { action ->
-                        DropdownMenuItem(
-                            text = { Text("强行停止".i18n()) },
                             onClick = { action(); menuExpanded = false }
                         )
                     }

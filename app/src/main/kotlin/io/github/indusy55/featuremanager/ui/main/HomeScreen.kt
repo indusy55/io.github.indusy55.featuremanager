@@ -1,6 +1,4 @@
 package io.github.indusy55.featuremanager.ui.main
-import android.app.ActivityManager
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
@@ -50,8 +48,8 @@ import io.github.indusy55.featuremanager.ui.components.SearchField
 
 private const val LOADED_FRESH_MS = 15 * 60 * 1000L
 
-private fun isFreshLoaded(loaded: LoadedProcessState?): Boolean {
-    return loaded != null && loaded.timestamp > 0L &&
+private fun isFreshLoaded(loaded: LoadedProcessState?, revision: Int): Boolean {
+    return loaded != null && loaded.configVersion == revision && loaded.timestamp > 0L &&
         System.currentTimeMillis() - loaded.timestamp < LOADED_FRESH_MS
 }
 
@@ -96,31 +94,13 @@ fun HomeScreen(
         }
     }
 
-    fun forceStop(pkg: String) {
-        var stopped = runCatching {
-            val am = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-            am.javaClass.getMethod("forceStopPackage", String::class.java).invoke(am, pkg)
-            true
-        }.getOrDefault(false)
-        if (!stopped) {
-            stopped = runCatching {
-                val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "am force-stop $pkg"))
-                process.waitFor() == 0
-            }.getOrDefault(false)
-        }
-        Toast.makeText(
-            context,
-            if (stopped) "已强行停止".i18n() else "强行停止失败，请在系统设置中操作".i18n(),
-            Toast.LENGTH_SHORT
-        ).show()
-    }
 
     val configuredApps = remember(state.appConfigs, state.loadedStates, labels, query, filter) {
         val keyword = query.trim()
         state.appConfigs.values.asSequence()
             .filter { it.hasActiveRules }
             .filter {
-                filter == HomeFilter.ALL || isFreshLoaded(state.loadedStates[it.packageName])
+                filter == HomeFilter.ALL || isFreshLoaded(state.loadedStates[it.packageName], state.revision)
             }
             .filter { config ->
                 keyword.isEmpty() ||
@@ -240,10 +220,9 @@ fun HomeScreen(
                         label = labelOf(config.packageName),
                         config = config,
                         onClick = { onOpenAppRules(config.packageName) },
-                        loadedVersion = if (isFreshLoaded(loaded)) loaded?.configVersion else null,
+                        loadedVersion = if (isFreshLoaded(loaded, state.revision)) loaded?.configVersion else null,
                         compact = state.settings.compactCards,
                         onAppInfo = { openAppDetails(config.packageName) },
-                        onForceStop = { forceStop(config.packageName) },
                         onRemoveRules = { repo.clearAppRules(config.packageName) }
                     )
                 }
