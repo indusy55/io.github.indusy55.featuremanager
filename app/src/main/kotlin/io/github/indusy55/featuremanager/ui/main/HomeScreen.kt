@@ -48,9 +48,14 @@ import io.github.indusy55.featuremanager.ui.components.SearchField
 
 private const val LOADED_FRESH_MS = 15 * 60 * 1000L
 
-private fun isFreshLoaded(loaded: LoadedProcessState?, revision: Int): Boolean {
-    return loaded != null && loaded.configVersion == revision && loaded.timestamp > 0L &&
-        System.currentTimeMillis() - loaded.timestamp < LOADED_FRESH_MS
+private fun isFreshLoaded(loaded: LoadedProcessState?, revision: Int, fingerprint: String): Boolean {
+    if (loaded == null || loaded.timestamp <= 0L) return false
+    val matches = if (fingerprint.isNotBlank()) {
+        loaded.rulesFingerprint == fingerprint
+    } else {
+        loaded.configVersion == revision
+    }
+    return matches && System.currentTimeMillis() - loaded.timestamp < LOADED_FRESH_MS
 }
 
 private enum class HomeFilter(val label: String) {
@@ -100,7 +105,7 @@ fun HomeScreen(
         state.appConfigs.values.asSequence()
             .filter { it.hasActiveRules }
             .filter {
-                filter == HomeFilter.ALL || isFreshLoaded(state.loadedStates[it.packageName], state.revision)
+                filter == HomeFilter.ALL || (it.enabled && isFreshLoaded(state.loadedStates[it.packageName], state.revision, it.fingerprint))
             }
             .filter { config ->
                 keyword.isEmpty() ||
@@ -220,10 +225,12 @@ fun HomeScreen(
                         label = labelOf(config.packageName),
                         config = config,
                         onClick = { onOpenAppRules(config.packageName) },
-                        loadedVersion = if (isFreshLoaded(loaded, state.revision)) loaded?.configVersion else null,
+                        loadedVersion = if (config.enabled && isFreshLoaded(loaded, state.revision, config.fingerprint)) loaded?.configVersion else null,
                         compact = state.settings.compactCards,
                         onAppInfo = { openAppDetails(config.packageName) },
-                        onRemoveRules = { repo.clearAppRules(config.packageName) }
+                        onRemoveRules = { repo.clearAppRules(config.packageName) },
+                        rulesEnabled = config.enabled,
+                        onToggleEnabled = { repo.setAppEnabled(config.packageName, !config.enabled) }
                     )
                 }
             }

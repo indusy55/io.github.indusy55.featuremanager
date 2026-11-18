@@ -235,4 +235,7 @@ private val translations: Map<String, String> = mapOf(
     "强行停止失败，请在系统设置中操作" to "Force stop failed; use system settings",
     "用户应用" to "User apps",
     "待生效" to "Pending",
+    "禁用规则" to "Disable rules",
+    "启用规则" to "Enable rules",
+    "规则已禁用" to "Rules disabled",
 )

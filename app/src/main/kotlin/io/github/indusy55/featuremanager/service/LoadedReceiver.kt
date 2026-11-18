@@ -31,6 +31,7 @@ class LoadedReceiver : BroadcastReceiver() {
         )
         val addedCount = intent.getIntExtra(ConfigContract.EXTRA_ADDED_COUNT, 0)
         val removedCount = intent.getIntExtra(ConfigContract.EXTRA_REMOVED_COUNT, 0)
+        val fingerprint = intent.getStringExtra(ConfigContract.EXTRA_FINGERPRINT).orEmpty()
 
         FeatureRepository.get(context).markConfigLoaded(
             LoadedProcessState(
@@ -39,7 +40,8 @@ class LoadedReceiver : BroadcastReceiver() {
                 configVersion = version,
                 timestamp = timestamp,
                 addedCount = addedCount,
-                removedCount = removedCount
+                removedCount = removedCount,
+                rulesFingerprint = fingerprint
             )
         )
     }

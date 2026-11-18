@@ -38,7 +38,7 @@ class FeatureRepository private constructor(private val appContext: Context) {
     fun resolveForProvider(packageName: String): ResolvedConfigSnapshot {
         val state = currentState
         val config = state.appConfigs[packageName]
-        if (config == null || !config.hasActiveRules) {
+        if (config == null || !config.enabled || !config.hasActiveRules) {
             return ResolvedConfigSnapshot(
                 packageName = packageName,
                 add = emptyArray(),
@@ -108,6 +108,18 @@ class FeatureRepository private constructor(private val appContext: Context) {
         mutate(bumpRevision = true, notifyChange = true) { state ->
             val nextConfigs = state.appConfigs.toMutableMap()
             nextConfigs.remove(packageName)
+            state.copy(appConfigs = nextConfigs)
+        }
+    }
+
+    fun setAppEnabled(packageName: String, enabled: Boolean) {
+        mutate(bumpRevision = true, notifyChange = true) { state ->
+            val config = state.appConfigs[packageName] ?: return@mutate state
+            val nextConfigs = state.appConfigs.toMutableMap()
+            nextConfigs[packageName] = config.copy(
+                enabled = enabled,
+                updatedAt = System.currentTimeMillis()
+            )
             state.copy(appConfigs = nextConfigs)
         }
     }
@@ -294,7 +306,7 @@ class FeatureRepository private constructor(private val appContext: Context) {
             }
             cfgObj.put("rules", rulesObj)
             cfgObj.put("appliedTemplates", JSONArray(cfg.appliedTemplates))
-            cfgObj.put("updatedAt", cfg.updatedAt)
+            cfgObj.put("enabled", cfg.enabled)
             appsObj.put(pkg, cfgObj)
         }
         root.put("appConfigs", appsObj)
@@ -340,6 +352,7 @@ class FeatureRepository private constructor(private val appContext: Context) {
                     put("timestamp", l.timestamp)
                     put("addedCount", l.addedCount)
                     put("removedCount", l.removedCount)
+                    put("rulesFingerprint", l.rulesFingerprint)
                 }
             )
         }
@@ -384,6 +397,7 @@ class FeatureRepository private constructor(private val appContext: Context) {
                         packageName = pkg,
                         rules = rules,
                         appliedTemplates = appliedTemplates,
+                        enabled = cfgObj.optBoolean("enabled", true),
                         updatedAt = cfgObj.optLong("updatedAt", 0L)
                     )
                 }
@@ -460,7 +474,8 @@ class FeatureRepository private constructor(private val appContext: Context) {
                     configVersion = item.optInt("configVersion", 0),
                     timestamp = item.optLong("timestamp", 0L),
                     addedCount = item.optInt("addedCount", 0),
-                    removedCount = item.optInt("removedCount", 0)
+                    removedCount = item.optInt("removedCount", 0),
+                    rulesFingerprint = item.optString("rulesFingerprint", ""),
                 )
             }
         }

@@ -1,4 +1,5 @@
 package io.github.indusy55.featuremanager.ui.components
+import androidx.compose.ui.draw.alpha
 import androidx.compose.runtime.setValue
 import io.github.indusy55.featuremanager.i18n.i18n
 import androidx.compose.material3.DropdownMenu
@@ -263,10 +264,16 @@ fun AppScopeStatusChip(
     loadedState: LoadedProcessState?,
     modifier: Modifier = Modifier,
     configRevision: Int? = null,
+    expectedFingerprint: String? = null,
     compact: Boolean = false
 ) {
     val now = System.currentTimeMillis()
-    val versionMatches = configRevision == null || loadedState?.configVersion == configRevision
+    val rulesMatch = if (!expectedFingerprint.isNullOrBlank()) {
+        loadedState?.rulesFingerprint == expectedFingerprint
+    } else {
+        configRevision == null || loadedState?.configVersion == configRevision
+    }
+    val versionMatches = rulesMatch
     val isOutdated = loadedState != null && !versionMatches
     val isFreshLoaded = loadedState != null && versionMatches &&
         now - loadedState.timestamp < 15 * 60 * 1000L
@@ -429,6 +436,8 @@ fun ConfiguredAppCard(
     compact: Boolean = false,
     onAppInfo: (() -> Unit)? = null,
     onRemoveRules: (() -> Unit)? = null,
+    rulesEnabled: Boolean = true,
+    onToggleEnabled: (() -> Unit)? = null,
 ) {
     val iconSize = if (compact) 48.dp else 64.dp
     var menuExpanded by remember { mutableStateOf(false) }
@@ -447,7 +456,9 @@ fun ConfiguredAppCard(
                 ),
             contentAlignment = Alignment.TopEnd
         ) {
-            AppIcon(packageName = packageName, size = iconSize)
+            Box(modifier = Modifier.alpha(if (rulesEnabled) 1f else 0.35f)) {
+                AppIcon(packageName = packageName, size = iconSize)
+            }
             if (loadedVersion != null) {
                 Box(
                     modifier = Modifier
@@ -457,7 +468,7 @@ fun ConfiguredAppCard(
                         .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape)
                 )
             }
-            if (onAppInfo != null || onRemoveRules != null) {
+            if (onAppInfo != null || onRemoveRules != null || onToggleEnabled != null) {
                 DropdownMenu(
                     expanded = menuExpanded,
                     onDismissRequest = { menuExpanded = false },
@@ -475,6 +486,12 @@ fun ConfiguredAppCard(
                             onClick = { action(); menuExpanded = false }
                         )
                     }
+                    onToggleEnabled?.let { action ->
+                        DropdownMenuItem(
+                            text = { Text(if (rulesEnabled) "禁用规则".i18n() else "启用规则".i18n()) },
+                            onClick = { action(); menuExpanded = false }
+                        )
+                    }
                 }
             }
         }
@@ -484,7 +501,11 @@ fun ConfiguredAppCard(
             style = MaterialTheme.typography.bodySmall,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            color = if (rulesEnabled) {
+                MaterialTheme.colorScheme.onSurface
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+            },
         )
         Text(
             text = "+${config.enabledCount}  ·  -${config.disabledCount}",
@@ -492,6 +513,14 @@ fun ConfiguredAppCard(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1
         )
+        if (!rulesEnabled) {
+            Text(
+                text = "规则已禁用".i18n(),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1
+            )
+        }
         if (loadedVersion != null) {
             Text(
                 text = "已生效 v$loadedVersion",

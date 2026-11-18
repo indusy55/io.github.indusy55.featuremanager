@@ -33,6 +33,7 @@ object ConfigContract {
     const val EXTRA_TIMESTAMP = "timestamp"
     const val EXTRA_ADDED_COUNT = "added_count"
     const val EXTRA_REMOVED_COUNT = "removed_count"
+    const val EXTRA_FINGERPRINT = "fingerprint"
 
     private val PACKAGE_REGEX = Regex("^[a-zA-Z_][a-zA-Z0-9_]*(\\.[a-zA-Z_][a-zA-Z0-9_]*)+$")
 
@@ -40,7 +41,12 @@ object ConfigContract {
         if (pkg.isNullOrBlank() || pkg.length > 255) return false
         return PACKAGE_REGEX.matches(pkg)
     }
+    /** Stable identity of the actual rule content, independent of revision bumps. */
+    fun fingerprint(add: Collection<String>, remove: Collection<String>): String {
+        return add.sorted().joinToString(",") + "|" + remove.sorted().joinToString(",")
+    }
 }
+
 
 enum class FeatureCategory(val title: String) {
     FORM_FACTOR("形态与变体 (Variant)"),

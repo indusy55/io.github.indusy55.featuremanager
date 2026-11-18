@@ -235,6 +235,7 @@ fun AppsScreen(
                                         frameworkStatus = framework,
                                         loadedState = state.loadedStates[app.packageName],
                                         configRevision = state.revision,
+                                        expectedFingerprint = state.appConfigs[app.packageName]?.fingerprint,
                                     )
                                     Spacer(Modifier.height(4.dp))
                                     if (!inScope) {

@@ -130,6 +130,7 @@ object ConfigClient {
             putExtra(ConfigContract.EXTRA_TIMESTAMP, System.currentTimeMillis())
             putExtra(ConfigContract.EXTRA_ADDED_COUNT, config.add.size)
             putExtra(ConfigContract.EXTRA_REMOVED_COUNT, config.remove.size)
+            putExtra(ConfigContract.EXTRA_FINGERPRINT, ConfigContract.fingerprint(config.add, config.remove))
         }
         runCatching { context.sendBroadcast(intent) }
     }

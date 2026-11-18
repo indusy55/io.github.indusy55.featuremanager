@@ -1,6 +1,7 @@
 package io.github.indusy55.featuremanager.data
 
 import android.content.pm.PackageManager
+import io.github.indusy55.featuremanager.core.ConfigContract
 import io.github.indusy55.featuremanager.core.FeatureCatalog
 
 /**
@@ -22,7 +23,8 @@ data class AppFeatureConfig(
     val packageName: String,
     val rules: Map<String, Decision> = emptyMap(),
     val appliedTemplates: List<String> = emptyList(),
-    val updatedAt: Long = 0L
+    val updatedAt: Long = 0L,
+    val enabled: Boolean = true,
 ) {
     val activeRules: Map<String, Decision>
         get() = rules.filterValues { it != Decision.DEFAULT }
@@ -43,12 +45,17 @@ data class AppFeatureConfig(
 
     val hasActiveRules: Boolean
         get() = rules.values.any { it != Decision.DEFAULT }
+    val isEffective: Boolean
+        get() = enabled && hasActiveRules
 
     val enabledCount: Int
         get() = rules.values.count { it == Decision.FORCE_TRUE }
 
     val disabledCount: Int
         get() = rules.values.count { it == Decision.FORCE_FALSE }
+
+    val fingerprint: String
+        get() = ConfigContract.fingerprint(addedFeatures, removedFeatures)
 }
 
 data class FeatureTemplate(
@@ -98,7 +105,8 @@ data class LoadedProcessState(
     val configVersion: Int = 0,
     val timestamp: Long = 0L,
     val addedCount: Int = 0,
-    val removedCount: Int = 0
+    val removedCount: Int = 0,
+    val rulesFingerprint: String = ""
 )
 
 data class PersistedAppState(

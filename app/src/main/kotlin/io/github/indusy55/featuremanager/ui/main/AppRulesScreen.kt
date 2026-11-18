@@ -1,4 +1,5 @@
 package io.github.indusy55.featuremanager.ui.main
+import androidx.compose.material3.TextButton
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 
@@ -154,6 +155,13 @@ fun AppRulesScreen(
                         overflow = TextOverflow.Ellipsis
                     )
                 },
+                actions = {
+                    TextButton(onClick = {
+                        repo.setAppEnabled(packageName, !config.enabled)
+                    }) {
+                        Text(if (config.enabled) "禁用规则".i18n() else "启用规则".i18n())
+                    }
+                },
             )
 
             LazyColumn(
@@ -198,6 +206,7 @@ fun AppRulesScreen(
                                     frameworkStatus = framework,
                                     loadedState = loadedState,
                                     configRevision = state.revision,
+                                    expectedFingerprint = config.fingerprint,
                                 )
                             }
                             if (config.appliedTemplates.isNotEmpty()) {
